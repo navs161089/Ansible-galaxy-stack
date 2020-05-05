@@ -1,0 +1,7 @@
+---
+# defaults file for mariadb
+ domain: example.com
+ mysql_root: naveen
+ wp_db: wordpress_2020
+ wp_user: wpuser_2020
+ wp_pass: wordpress_1234
