@@ -1,0 +1,61 @@
+---
+# tasks file for httpd
+
+ - name: Install epel Repositories
+   yum: name={{item}} state=present update_cache=yes
+   with_items:
+     - epel-release
+     - yum-utils
+
+ - name: Install remi repo
+   yum: 
+     name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+     state: present
+
+ - name: Enable PHP7 repo
+   command:
+     yum-config-manager --enable remi-php72
+
+ - name: Install Requirements
+   yum: name={{item}} state=present update_cache=yes
+   with_items:
+     - httpd
+     - php
+     - php-common
+     - php-gd
+     - php-mysqlnd
+    
+ - name: Download and extract WordPress
+   unarchive:
+     src: https://wordpress.org/latest.tar.gz
+     dest: /var/www/html/
+     remote_src: yes
+
+ - name: Configure DocumentRoot
+   command:
+     mv /var/www/html/wordpress /var/www/html/{{domain}}
+
+ - name: Correct permission and ownership
+   file:
+     path: /var/www/html/{{domain}}
+     owner: root
+     group: root
+     recurse: yes
+     mode: 0775
+
+ - name: Create VirtualHost for the domain
+   template:
+     src: virtualhost.j2
+     dest: /etc/httpd/conf.d/{{domain}}.conf
+
+ - name: Create WordPress Configuration file
+   template:
+     src: wp-config.j2
+     dest: /var/www/html/{{domain}}/wp-config.php
+   notify: restart httpd
+
+ - name: Restart Apache Webserver
+   service: 
+     name: httpd 
+     state: restarted
+     
